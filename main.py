@@ -76,11 +76,11 @@ lbl_title = ttk.Label(
     text="Select a Box",
     font=("Arial", 24, "bold")
 )
-lbl_title.pack(pady=20)
+lbl_title.pack(pady=(10, 5))
 
 # Frame containing the buttons
 box_frame = ttk.Frame(root)
-box_frame.pack(pady=10)
+box_frame.pack(pady=(0, 10))
 
 # Create 12 buttons in three columns and four rows
 for number in range(1, 13):
