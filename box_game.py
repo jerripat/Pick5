@@ -1,7 +1,9 @@
 import random
 import tkinter as tk
+from pathlib import Path
 
 import ttkbootstrap as ttk
+from PIL import Image, ImageTk
 
 
 NUMBER_OF_BOXES = 12
@@ -51,19 +53,25 @@ def box_clicked(box_number):
     )
 
     if box_number == secret_box:
-        winnings = active_wager * 2
-        balance += winnings
+        profit = active_wager
+        payout = active_wager * 2
+        balance += payout
         lbl_balance.config(text=f"Balance: ${balance:.2f}")
         lbl_result.config(
             text=(
                 f"Congratulations! Box {box_number} is correct. "
-                f"You won ${active_wager:.2f}!"
+                f"You won ${profit:.2f}!"
             ),
             bootstyle="success",
         )
+
+        if spiderman_photo is not None:
+            lbl_winner_image.pack(pady=8)
+
         active_wager = 0.0
         disable_buttons()
     elif attempts >= MAX_ATTEMPTS:
+        lbl_winner_image.pack_forget()
         lbl_result.config(
             text=(
                 f"Game over! The correct box was Box {secret_box}. "
@@ -150,6 +158,7 @@ def new_game():
     secret_box = random.randint(1, NUMBER_OF_BOXES)
     attempts = 0
     selected_numbers.clear()
+    lbl_winner_image.pack_forget()
 
     lbl_result.config(
         text="Enter a wager and select Submit Wager to begin.",
@@ -176,8 +185,21 @@ def exit_program():
 # Main window
 root = ttk.Window(themename="superhero")
 root.title("Find the Correct Box")
-root.geometry("620x600")
+root.geometry("620x750")
 root.resizable(False, False)
+
+
+# Load the winning image from the same folder as this program.
+# The game will still run if spiderman.jpg is missing or unreadable.
+spiderman_photo = None
+image_path = Path(__file__).with_name("spiderman.jpg")
+
+try:
+    with Image.open(image_path) as spiderman_image:
+        spiderman_image.thumbnail((160, 160), Image.Resampling.LANCZOS)
+        spiderman_photo = ImageTk.PhotoImage(spiderman_image.copy())
+except (FileNotFoundError, OSError):
+    pass
 
 
 # Menu
@@ -249,6 +271,8 @@ lbl_selected = ttk.Label(
 )
 lbl_selected.pack()
 
+lbl_winner_image = ttk.Label(root, image=spiderman_photo)
+
 
 # Wager controls
 wager_frame = ttk.Labelframe(
@@ -287,6 +311,13 @@ btn_submit_wager.grid(row=1, column=2, padx=(10, 0))
 
 txt_wager.bind("<Return>", lambda event: submit_wager())
 
+btnPlayAgain = ttk.Button(
+    wager_frame,
+    text="Play Again",
+    command=new_game,
+    bootstyle="success",
+)
+btnPlayAgain.grid(row=2, column=0, columnspan=3, pady=(10, 0))
 
 new_game()
 root.mainloop()

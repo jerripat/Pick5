@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['box_game.py'],
     pathex=[],
     binaries=[],
     datas=[],
