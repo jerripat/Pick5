@@ -6,11 +6,14 @@ import ttkbootstrap as ttk
 
 NUMBER_OF_BOXES = 12
 MAX_ATTEMPTS = 5
+STARTING_BALANCE = 100.00
 
 secret_box = 0
 attempts = 0
 selected_numbers = []
 buttons = []
+balance = STARTING_BALANCE
+active_wager = 0.0
 
 
 def disable_buttons():
@@ -21,7 +24,14 @@ def disable_buttons():
 
 def box_clicked(box_number):
     """Check the chosen box and save its number."""
-    global attempts
+    global attempts, balance, active_wager
+
+    if active_wager <= 0:
+        lbl_result.config(
+            text="Enter and submit a wager before selecting a box.",
+            bootstyle="warning",
+        )
+        return
 
     if box_number in selected_numbers:
         lbl_result.config(
@@ -41,16 +51,27 @@ def box_clicked(box_number):
     )
 
     if box_number == secret_box:
+        winnings = active_wager * 2
+        balance += winnings
+        lbl_balance.config(text=f"Balance: ${balance:.2f}")
         lbl_result.config(
-            text=f"Congratulations! Box {box_number} is correct.",
+            text=(
+                f"Congratulations! Box {box_number} is correct. "
+                f"You won ${active_wager:.2f}!"
+            ),
             bootstyle="success",
         )
+        active_wager = 0.0
         disable_buttons()
     elif attempts >= MAX_ATTEMPTS:
         lbl_result.config(
-            text=f"Game over! The correct box was Box {secret_box}.",
+            text=(
+                f"Game over! The correct box was Box {secret_box}. "
+                "Your wager was lost."
+            ),
             bootstyle="danger",
         )
+        active_wager = 0.0
         disable_buttons()
     else:
         remaining = MAX_ATTEMPTS - attempts
@@ -63,24 +84,88 @@ def box_clicked(box_number):
         )
 
 
+def submit_wager():
+    """Validate the wager and begin the current round."""
+    global balance, active_wager
+
+    if active_wager > 0:
+        lbl_result.config(
+            text="A wager has already been submitted.",
+            bootstyle="warning",
+        )
+        return
+
+    try:
+        wager = float(txt_wager.get().strip())
+    except ValueError:
+        lbl_result.config(
+            text="Enter a valid wager amount.",
+            bootstyle="danger",
+        )
+        txt_wager.focus_set()
+        return
+
+    if wager <= 0:
+        lbl_result.config(
+            text="The wager must be greater than zero.",
+            bootstyle="danger",
+        )
+        txt_wager.focus_set()
+        return
+
+    if wager > balance:
+        lbl_result.config(
+            text="Your wager cannot be greater than your balance.",
+            bootstyle="danger",
+        )
+        txt_wager.focus_set()
+        return
+
+    active_wager = wager
+    balance -= wager
+    lbl_balance.config(text=f"Balance: ${balance:.2f}")
+    lbl_result.config(
+        text=f"Wager accepted: ${wager:.2f}. Select a box.",
+        bootstyle="info",
+    )
+
+    txt_wager.config(state=tk.DISABLED)
+    btn_submit_wager.config(state=tk.DISABLED)
+
+    for button in buttons:
+        button.config(state=tk.NORMAL)
+
+    buttons[0].focus_set()
+
+
 def new_game():
     """Reset all game information and start a new game."""
-    global secret_box, attempts
+    global secret_box, attempts, balance, active_wager
+
+    # Return an unfinished wager when the user starts a new game.
+    if active_wager > 0:
+        balance += active_wager
+        active_wager = 0.0
 
     secret_box = random.randint(1, NUMBER_OF_BOXES)
     attempts = 0
     selected_numbers.clear()
 
     lbl_result.config(
-        text=f"Select the correct box. You have {MAX_ATTEMPTS} attempts.",
+        text="Enter a wager and select Submit Wager to begin.",
         bootstyle="info",
     )
     lbl_selected.config(text="Selected boxes: None")
+    lbl_balance.config(text=f"Balance: ${balance:.2f}")
+
+    txt_wager.config(state=tk.NORMAL)
+    txt_wager.delete(0, tk.END)
+    btn_submit_wager.config(state=tk.NORMAL)
 
     for button in buttons:
-        button.config(state=tk.NORMAL)
+        button.config(state=tk.DISABLED)
 
-    buttons[0].focus_set()
+    txt_wager.focus_set()
 
 
 def exit_program():
@@ -91,7 +176,7 @@ def exit_program():
 # Main window
 root = ttk.Window(themename="superhero")
 root.title("Find the Correct Box")
-root.geometry("620x500")
+root.geometry("620x600")
 root.resizable(False, False)
 
 
@@ -163,6 +248,44 @@ lbl_selected = ttk.Label(
     bootstyle="secondary",
 )
 lbl_selected.pack()
+
+
+# Wager controls
+wager_frame = ttk.Labelframe(
+    root,
+    text="Wager",
+    padding=15,
+    bootstyle="success",
+)
+wager_frame.pack(pady=(20, 0))
+
+lbl_balance = ttk.Label(
+    wager_frame,
+    text=f"Balance: ${balance:.2f}",
+    font=("Arial", 12, "bold"),
+    bootstyle="success",
+)
+lbl_balance.grid(row=0, column=0, columnspan=3, pady=(0, 10))
+
+lbl_wager = ttk.Label(
+    wager_frame,
+    text="Wager amount: $",
+    font=("Arial", 11),
+)
+lbl_wager.grid(row=1, column=0, padx=(0, 5))
+
+txt_wager = ttk.Entry(wager_frame, width=12, font=("Arial", 11))
+txt_wager.grid(row=1, column=1, padx=5)
+
+btn_submit_wager = ttk.Button(
+    wager_frame,
+    text="Submit Wager",
+    command=submit_wager,
+    bootstyle="success",
+)
+btn_submit_wager.grid(row=1, column=2, padx=(10, 0))
+
+txt_wager.bind("<Return>", lambda event: submit_wager())
 
 
 new_game()
