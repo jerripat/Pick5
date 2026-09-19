@@ -13,7 +13,7 @@ buttons = []
 def box_clicked(box_number):
     """Check the selected box."""
     global attempts
-
+    selected_numbers = []
     attempts += 1
 
     if box_number == secret_box:
@@ -113,16 +113,36 @@ lbl_result = ttk.Label(
     bootstyle="light",
     wraplength=450
 )
-lbl_result.pack(pady=20)
+lbl_result.pack(pady=(0, 20))
 
 # New-game button
-btn_new_game = ttk.Button(
-    root,
-    text="New Game",
-    bootstyle="success",
+# btn_new_game = ttk.Button(
+#     root,
+#     text="New Game",
+#     bootstyle="success",
+#     command=new_game
+# )
+# btn_new_game.pack(pady=10)
+
+# Menu bar
+menu_bar = tk.Menu(root)
+root.config(menu=menu_bar)
+
+# File menu
+file_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="File", menu=file_menu)
+
+file_menu.add_command(
+    label="New Game",
     command=new_game
 )
-btn_new_game.pack(pady=10)
+
+file_menu.add_separator()
+
+file_menu.add_command(
+    label="Exit",
+    command=root.destroy
+)
 
 # Run the application once
 root.mainloop()
