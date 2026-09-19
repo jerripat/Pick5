@@ -67,7 +67,7 @@ def new_game():
 # Create one main window
 root = ttk.Window(themename="superhero")
 root.title("12 Clickable Boxes")
-root.geometry("500x550")
+root.geometry("500x600")
 root.resizable(False, False)
 
 # Title
