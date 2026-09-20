@@ -4,7 +4,7 @@ from pathlib import Path
 
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
-
+from thonny.plugins import outline
 
 NUMBER_OF_BOXES = 12
 MAX_ATTEMPTS = 5
@@ -53,6 +53,7 @@ def box_clicked(box_number):
     )
 
     if box_number == secret_box:
+        
         profit = active_wager
         payout = active_wager * 2
         balance += payout
@@ -305,7 +306,7 @@ btn_submit_wager = ttk.Button(
     wager_frame,
     text="Submit Wager",
     command=submit_wager,
-    bootstyle="success",
+    bootstyle="success-outline",
 )
 btn_submit_wager.grid(row=1, column=2, padx=(10, 0))
 
@@ -315,7 +316,7 @@ btnPlayAgain = ttk.Button(
     wager_frame,
     text="Play Again",
     command=new_game,
-    bootstyle="success",
+    bootstyle="success-outline",
 )
 btnPlayAgain.grid(row=2, column=0, columnspan=3, pady=(10, 0))
 
